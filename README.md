@@ -363,3 +363,102 @@ You can test these endpoints using tools like **Postman**, **Insomnia**, or `cur
     ```bash
     curl http://localhost:5000/api/search?q=hitchhiker
     ```
+
+---
+
+## Database Schema Design
+
+This API utilizes a MongoDB database, with schemas defined using Mongoose. Below is a brief overview of the main collections and their relationships.
+
+### 1. User Schema (`User` Collection)
+
+Represents a user in the system.
+
+* **`_id`**: MongoDB's default unique identifier for the document.
+* **`username`**:
+    * **Type:** `String`
+    * **Required:** Yes
+    * **Unique:** Yes
+    * **Description:** User's unique identifier for login.
+* **`password`**:
+    * **Type:** `String`
+    * **Required:** Yes
+    * **Description:** Hashed password of the user (stored securely using `bcryptjs`).
+* **`createdAt`**:
+    * **Type:** `Date`
+    * **Description:** Timestamp for when the user was created.
+* **`updatedAt`**:
+    * **Type:** `Date`
+    * **Description:** Timestamp for when the user's data was last updated.
+
+### 2. Book Schema (`Book` Collection)
+
+Represents a book entry.
+
+* **`_id`**: MongoDB's default unique identifier for the document.
+* **`title`**:
+    * **Type:** `String`
+    * **Required:** Yes
+    * **Description:** The title of the book.
+* **`author`**:
+    * **Type:** `String`
+    * **Required:** Yes
+    * **Description:** The author of the book.
+* **`genre`**:
+    * **Type:** `String`
+    * **Required:** Yes
+    * **Description:** The genre of the book.
+* **`user`**:
+    * **Type:** `ObjectId`
+    * **Ref:** `User`
+    * **Required:** Yes
+    * **Description:** References the user who added this book.
+* **`createdAt`**:
+    * **Type:** `Date`
+    * **Description:** Timestamp for when the book was added.
+* **`updatedAt`**:
+    * **Type:** `Date`
+    * **Description:** Timestamp for when the book's data was last updated.
+* **`averageRating`**:
+    * **Type:** `Virtual (Number)`
+    * **Description:** A calculated field that dynamically computes the average rating from all associated reviews for this book. **Not stored directly** in the database.
+
+### 3. Review Schema (`Review` Collection)
+
+Represents a user's review for a specific book.
+
+* **`_id`**: MongoDB's default unique identifier for the document.
+* **`book`**:
+    * **Type:** `ObjectId`
+    * **Ref:** `Book`
+    * **Required:** Yes
+    * **Description:** References the book being reviewed.
+* **`user`**:
+    * **Type:** `ObjectId`
+    * **Ref:** `User`
+    * **Required:** Yes
+    * **Description:** References the user who submitted the review.
+* **`rating`**:
+    * **Type:** `Number`
+    * **Required:** Yes
+    * **Min:** 1
+    * **Max:** 5
+    * **Description:** The rating given by the user (1-5 stars).
+* **`comment`**:
+    * **Type:** `String`
+    * **Description:** Optional textual comment accompanying the rating.
+* **`createdAt`**:
+    * **Type:** `Date`
+    * **Description:** Timestamp for when the review was submitted.
+* **`updatedAt`**:
+    * **Type:** `Date`
+    * **Description:** Timestamp for when the review was last updated.
+
+### Relationships:
+
+* **One-to-Many (User to Book):** One user can add multiple books. (A `Book` has a `user` field referencing the `User` who added it).
+* **Many-to-Many (User to Book via Review):** Users can review many books, and books can have many reviews from different users.
+* **One-to-Many (Book to Review):** One book can have multiple reviews. (A `Review` has a `book` field referencing the `Book` it's for).
+* **One-to-One (User to Review for a specific book):** Each user can submit only one review for a given book. This is enforced by a unique compound index on `(book, user)` within the `Review` schema.
+
+---
