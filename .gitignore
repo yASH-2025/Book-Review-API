@@ -15,7 +15,7 @@
 
 # Misc
 .DS_Store
-.env # Your environment variables file - VERY IMPORTANT!
+.env
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
